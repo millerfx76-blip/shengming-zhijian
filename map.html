@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071119">
+  <meta name="description" content="沿王利华《以生命为中心进行历史思考》探索生命实在、三维历史时轴与四重基本关系。">
+  <title>生命 · 一张可探索的思想地图</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23071119'/%3E%3Ccircle cx='20' cy='20' r='12' fill='none' stroke='%23b9a16e'/%3E%3Cellipse cx='20' cy='20' rx='6' ry='15' fill='none' stroke='%2376cabd' transform='rotate(35 20 20)'/%3E%3Ccircle cx='20' cy='20' r='3' fill='%23ead8b0'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script src="content.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <canvas id="atmosphere" aria-hidden="true"></canvas>
+  <div class="app">
+    <header class="masthead">
+      <a class="wordmark" href="#" aria-label="返回生命思想地图" id="home"><span class="wordmark-symbol">生</span><span>生命<span class="wordmark-dot"> · </span>思想地图</span></a>
+      <div class="masthead-caption">王利华 · 以生命为中心进行历史思考</div>
+      <div class="header-actions"><button id="tour-start" class="quiet-button">沿论文走一遍</button><button id="sources-open" class="quiet-button">阅读来源</button></div>
+    </header>
+
+    <main class="explorer">
+      <section class="map-column" aria-label="互动思想地图">
+        <div class="map-heading"><div><p class="eyebrow">一份初步拟制的思想导图</p><h1>在关系中，<span>看见生命。</span></h1></div><span class="edition">探索版 <span>01</span></span></div>
+        <nav class="map-tabs" aria-label="选择思想地图层次">
+          <button class="map-tab is-active" data-view="relations" aria-pressed="true"><span class="tab-number">01</span>四重关系</button>
+          <button class="map-tab" data-view="attributes" aria-pressed="false"><span class="tab-number">02</span>三重属性</button>
+          <button class="map-tab" data-view="sources" aria-pressed="false"><span class="tab-number">03</span>思想来路</button>
+          <button class="map-tab" data-view="systems" aria-pressed="false"><span class="tab-number">04</span>四个系统</button>
+        </nav>
+        <div class="map-viewport" id="map-viewport">
+          <div class="map-coordinate coord-top">生命实在 · 多层嵌套</div>
+          <div id="map-world" class="map-world">
+            <svg id="map-lines" class="map-lines" aria-hidden="true"></svg>
+            <div class="orbit orbit-one" aria-hidden="true"></div><div class="orbit orbit-two" aria-hidden="true"></div><div class="orbit orbit-three" aria-hidden="true"></div>
+            <button class="core-node" id="core-node" aria-label="生命实在：查看整张地图的起点"><span class="core-image"></span><span class="core-label"><span class="core-overline">历史的起点</span><strong>生命实在</strong><span class="core-subline">自然 · 社会 · 个体</span></span></button>
+            <div id="map-nodes"></div>
+          </div>
+          <div class="map-bottom"><span id="map-hint">选择一个节点，展开它的联系</span><div class="map-tools"><button id="zoom-out" aria-label="缩小地图">−</button><button id="map-reset" aria-label="复位地图">归位</button><button id="zoom-in" aria-label="放大地图">＋</button><button id="motion-toggle" aria-label="暂停背景动效" aria-pressed="false">动效</button><button id="fullscreen" aria-label="全屏查看">全屏</button></div></div>
+        </div>
+        <section class="time-lens" aria-label="三维历史时轴">
+          <div class="time-lens-heading"><span class="eyebrow">三维历史时轴</span><span id="lens-description">三种时间相互嵌套，也彼此改变</span></div>
+          <div class="lens-controls"><button class="lens is-active" data-lens="all" aria-pressed="true"><span class="lens-icon">◎</span>全部尺度</button><button class="lens" data-lens="earth" aria-pressed="false"><span class="lens-icon">◯</span>地球生命</button><button class="lens" data-lens="society" aria-pressed="false"><span class="lens-icon">◈</span>社会生命</button><button class="lens" data-lens="individual" aria-pressed="false"><span class="lens-icon">◇</span>个体生命</button></div>
+          <div class="time-ribbons" aria-hidden="true"><div class="ribbon earth"><span>地球生命时间</span></div><div class="ribbon society"><span>社会生命时间</span></div><div class="ribbon individual"><span>个体生命时间</span></div></div>
+          <p class="scale-note">嵌套关系示意 · 图形长度不代表年数</p>
+        </section>
+      </section>
+
+      <aside class="reading-panel" id="reading-panel" aria-label="所选概念的解释">
+        <div class="panel-topline"><span id="panel-category">思想起点</span><span id="panel-index">00</span></div>
+        <div class="panel-content" id="panel-content" aria-live="polite"></div>
+        <div class="panel-foot"><span>依原文组织 · 节点文字为概括</span><button id="panel-source">查看对应原文</button></div>
+      </aside>
+    </main>
+    <footer class="app-footer"><span>“完整的人”，在历史中生成。</span><span>据《南开史学》2026 年 10 月 2 日刊载文本</span></footer>
+  </div>
+
+  <section class="tour-bar" id="tour-bar" aria-label="论文导览" hidden><div><span class="eyebrow" id="tour-position">01 / 07</span><strong id="tour-title"></strong></div><div class="tour-actions"><button id="tour-prev">上一步</button><button id="tour-next">下一步</button><button id="tour-close" aria-label="结束导览">结束</button></div></section>
+  <dialog id="sources-dialog"><div class="dialog-header"><div><p class="eyebrow">文字与思想的来处</p><h2>阅读来源</h2></div><button id="sources-close" aria-label="关闭阅读来源">×</button></div><div class="dialog-body"><article><span class="source-kind">主文本 · 已读全文</span><h3>以生命为中心进行历史思考<br>——一份初步拟制的思想导图</h3><p>王利华，《南开史学》微信公众号，2026 年 10 月 2 日。使用你提供的 20 页 PDF；正文位于 PDF 第 1—19 页，第 20 页为公众号导航。</p><a href="https://mp.weixin.qq.com/s/yv6NnyY45SzXqt00T36eOw" target="_blank" rel="noopener">原始微信页面</a></article><article><span class="source-kind">相关论述 · 作者对话</span><h3>环境史的生生之道与人类未来</h3><p>王利华与唐纳德·沃斯特对话，练志闲整理翻译，《中国社会科学报》2023 年 12 月 6 日第 3 版，南开大学网站转载。关联本图的“生命关怀”“生物属性与文化力量”。</p><a href="https://news.nankai.edu.cn/mtnk/system/2023/12/09/030059282.shtml" target="_blank" rel="noopener">阅读对话</a></article><article><span class="source-kind">相关论述 · 讲座报道</span><h3>环境史学的一二三四五<br>——一个初步拟定的学理架构</h3><p>2025 年 3 月 29 日讲座，陕西师范大学西北历史环境与经济社会发展研究院于 4 月 1 日发布报道。“四个系统”一层依此报道与主文本组织；报道不替代讲座全文。</p><a href="https://heshan.snnu.edu.cn/info/1041/8388.htm" target="_blank" rel="noopener">阅读讲座报道</a></article><article class="source-method"><h3>怎样阅读这张地图</h3><p>连线表示原文中的概念联系与本次整理的阅读路径，不表示已经测定的因果强度。三种属性、三种时间尺度、四重关系、四个系统各自回答不同问题。页面将作者提出的框架作为探索对象，保留其初步研究构想的性质。</p></article></div></dialog>
+</body>
+</html>
