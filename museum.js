@@ -16,6 +16,68 @@
     {zoom:1.7,x:'73%',y:'75%'}
   ];
   let lastPerson = -1;
+  const deltaStation = $('.delta-station');
+  const deltaLayout = $('.delta-layout');
+  const timeStage = $('.time-stage');
+  const timeLayout = $('.time-layout');
+  const deltaViews = {
+    overview:{zoom:1,x:.5,y:.5,label:'同一区域 / 全景'},
+    mouth:{zoom:2.4,x:.8,y:.36,label:'01 / 河口 · 局部对照'},
+    shore:{zoom:2.6,x:.42,y:.10,label:'02 / 海岸 · 局部对照'},
+    ponds:{zoom:3,x:.16,y:.15,label:'03 / 池塘 · 局部对照'}
+  };
+  let deltaView = 'overview', lastDeltaStory = '', deltaOverview = false, deltaGeometry = '';
+  function renderDelta() {
+    const rect = $('#compare').getBoundingClientRect();
+    const geometry = [rect.width,rect.height,deltaView].join('/');
+    if (!rect.width || !rect.height || geometry === deltaGeometry) return;
+    deltaGeometry = geometry;
+    const d = deltaViews[deltaView];
+    const scale = Math.min(rect.width/4019,rect.height/4469)*d.zoom;
+    const width = 4019*scale, height = 4469*scale;
+    const left = width <= rect.width ? (rect.width-width)/2 : Math.max(rect.width-width,Math.min(0,rect.width/2-width*d.x));
+    const top = height <= rect.height ? (rect.height-height)/2 : Math.max(rect.height-height,Math.min(0,rect.height/2-height*d.y));
+    const canvas = $('#compare');
+    for (const [key,value] of Object.entries({'--map-width':width,'--map-height':height,'--map-left':left,'--map-top':top})) canvas.style.setProperty(key,value+'px');
+  }
+  function setDeltaView(key) {
+    deltaView = key;
+    $('#compare').dataset.view = key;
+    $('#delta-focus-label').textContent = deltaViews[key].label;
+    $('#delta-overview').setAttribute('aria-pressed',String(key === 'overview'));
+    renderDelta();
+  }
+  $('#delta-overview').addEventListener('click',() => { deltaOverview = true; setDeltaView('overview'); });
+  $$('[data-delta]').forEach(a => a.addEventListener('click',() => { deltaOverview = false; setDeltaView(a.dataset.delta); }));
+  setDeltaView('overview');
+
+  $$('[data-art-view]').forEach(button => button.addEventListener('click',() => {
+    const art = button.closest('.idea-art');
+    art.dataset.artView = button.dataset.artView;
+    Array.from(art.querySelectorAll('button')).forEach(b => b.setAttribute('aria-pressed',String(b === button)));
+  }));
+
+  const atlasCases = {
+    meal:{label:'一顿饭',icon:'food',nodes:['土地与食物','检验与健康','营养与知识','生产与分配'],notes:['沿着土地、劳动与运输，看食物怎样进入餐桌。','沿着检验、卫生与制度，看食物安全怎样得到保障。','沿着经验与知识，看什么被认作营养或有害。','沿着土地、水与分配，看谁获得食物，谁承担短缺。']},
+    illness:{label:'一次疾病',icon:'defense',nodes:['生活与照料','治疗与防疫','病因与经验','家庭与劳动'],notes:['沿着食物、饮水与居住，看患病期间的生活怎样维持。','沿着医疗、护理与防疫，看谁能获得生命保护。','沿着经验和医学知识，看人们怎样解释疾病与风险。','沿着家庭、劳动与公共生活，看疾病怎样改变共同的安排。']},
+    message:{label:'一条推送',icon:'message',nodes:['设备与能源','身体与休息','筛选与认识','平台与注意力'],notes:['沿着设备、能源与材料，看信息抵达屏幕需要什么。','沿着休息与健康，看持续连接怎样进入身体的生活。','沿着筛选与传播，看哪些信息被看见，哪些被忽略。','沿着平台规则与使用习惯，看注意力怎样被组织。']}
+  };
+  const atlasSystems = ['support','defense','knowledge','order'];
+  let atlasCase = 'meal', atlasSystem = 'support';
+  function updateAtlas() {
+    const d = atlasCases[atlasCase];
+    $('#atlas-case-label').textContent = d.label;
+    $('#atlas-icon').setAttribute('href','#icon-'+d.icon);
+    atlasSystems.forEach((key,index) => { $('#atlas-'+key).textContent = d.nodes[index]; });
+    $('#atlas-description').textContent = d.notes[atlasSystems.indexOf(atlasSystem)];
+    $$('[data-atlas-case]').forEach(b => b.setAttribute('aria-pressed',String(b.dataset.atlasCase === atlasCase)));
+    $$('[data-atlas-system]').forEach(b => b.setAttribute('aria-pressed',String(b.dataset.atlasSystem === atlasSystem)));
+    $$('[data-atlas-path]').forEach(p => p.classList.toggle('active',p.dataset.atlasPath === atlasSystem));
+    $$('[data-system-story]').forEach(p => p.classList.toggle('active',p.dataset.systemStory === atlasSystem));
+  }
+  $$('[data-atlas-case]').forEach(b => b.addEventListener('click',() => { atlasCase = b.dataset.atlasCase; updateAtlas(); }));
+  $$('[data-atlas-system]').forEach(b => b.addEventListener('click',() => { atlasSystem = b.dataset.atlasSystem; updateAtlas(); }));
+  updateAtlas();
   function closeMenu(returnFocus = false) {
     menu.open = false;
     if (returnFocus) summary.focus();
@@ -94,6 +156,27 @@
     const personReference = narrowPerson && pictureRect.top >= 0 && pictureRect.top < innerHeight
       ? Math.min(innerHeight-40,Math.max(reference,pictureRect.bottom+Math.min(100,Math.max(80,(innerHeight-pictureRect.bottom)*.2))))
       : reference;
+    const timePinned = getComputedStyle(timeStage).position === 'sticky';
+    const timeRect = timeStage.getBoundingClientRect();
+    timeLayout.style.setProperty('--time-sticky-space',(timePinned ? timeRect.height : 0)+'px');
+    const timeReference = timePinned && timeRect.top >= 0 && timeRect.top < innerHeight
+      ? Math.min(innerHeight-40,Math.max(reference,timeRect.bottom+80)) : reference;
+    const deltaPinned = getComputedStyle(deltaStation).position === 'sticky';
+    const deltaRect = deltaStation.getBoundingClientRect();
+    deltaLayout.style.setProperty('--delta-sticky-space',(deltaPinned ? deltaRect.height : 0)+'px');
+    const deltaReference = deltaPinned && deltaRect.top >= 0 && deltaRect.top < innerHeight
+      ? Math.min(innerHeight-40,Math.max(reference,deltaRect.bottom+80)) : reference;
+    // 最后一段较短时，图像仍要完整陪伴它，随后才退出展厅。
+    for (const [storiesSelector,visualSelector,pinnedElement] of [
+      ['.person-stories','.person-visual',picture],
+      ['.time-stories','.time-figure',timeStage],
+      ['.delta-stories','.delta-visual',deltaStation]
+    ]) {
+      const stories = $(storiesSelector), visual = $(visualSelector);
+      const visualHeight = getComputedStyle(visual).display === 'contents' ? pinnedElement.getBoundingClientRect().height : visual.getBoundingClientRect().height;
+      const lastStory = stories.lastElementChild.getBoundingClientRect().height;
+      stories.style.setProperty('--visual-tail-space',Math.max(0,visualHeight-lastStory+12)+'px');
+    }
     let active = chapters[0];
     for (const chapter of chapters) if (chapter.getBoundingClientRect().top <= reference) active = chapter;
     $('#current-room').textContent = active.dataset.number+' / '+active.dataset.label;
@@ -109,13 +192,24 @@
       let selected = links[0];
       for (const a of links) {
         const target = document.getElementById(a.getAttribute('href').slice(1));
-        const readingLine = nav.closest('.person-visual') ? personReference : reference;
+        const readingLine = nav.closest('.person-visual') ? personReference : nav.closest('.time-figure') ? timeReference : nav.closest('.delta-visual') ? deltaReference : reference;
         if (target && target.getBoundingClientRect().top <= readingLine) selected = a;
       }
       links.forEach(a => {
         if (a === selected) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current');
       });
     });
+    const clock = $('.time-figure a[aria-current]');
+    const clockKey = clock?.dataset.clock || 'earth';
+    $('.time-figure').dataset.clock = clockKey;
+    $('#clock-focus').textContent = {earth:'地球',social:'社会',self:'一生'}[clockKey];
+    const deltaLink = $('.delta-visual a[aria-current]');
+    const deltaKey = deltaLink?.dataset.delta || 'mouth';
+    if (lastDeltaStory !== deltaKey) { lastDeltaStory = deltaKey; deltaOverview = false; }
+    const deltaBounds = deltaLayout.getBoundingClientRect();
+    const mouthVisible = $('#river-mouth').getBoundingClientRect().top <= deltaReference;
+    if (deltaBounds.top < innerHeight && deltaBounds.bottom > 0 && mouthVisible && !deltaOverview) setDeltaView(deltaKey);
+    renderDelta();
     const selected = $('.person-visual a[aria-current]');
     const index = selected ? Number(selected.dataset.person) : 0;
     if (lastPerson !== index) {
