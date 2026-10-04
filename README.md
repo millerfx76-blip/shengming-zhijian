@@ -3,3 +3,5 @@
 从地球到身体，从劳动到技术，进入王利华以生命为中心的历史思考。
 
 这是一座可以滚动探索的互动网页展览。
+
+[走进《生命之间》](https://millerfx76-blip.github.io/shengming-zhijian/)

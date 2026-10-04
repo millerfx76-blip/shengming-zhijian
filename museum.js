@@ -1,57 +1,130 @@
-/* 文章观点沿用已核读的主文本；摄影和卫星影像作为展览新增展品。 */
-(()=>{'use strict';
-const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
-const persons=[
-{label:'01 / 身体',title:'在机器面前，<br>先看见身体。',text:'人的行动有身体的条件：需要食物、休息，也有耐受的范围。沿着劳动中的身体追问，历史会走向它依赖的自然条件。',zoom:1,x:'50%',y:'50%',tx:'64%',ty:'72%',insight:'body'},
-{label:'02 / 共同生活',title:'劳动中的身体，<br>进入共同的生活。',text:'谁组织劳动，谁获得生活保障，谁承担风险？相同的身体需要，在不同制度和文化中，会得到不同的回应。',zoom:1.16,x:'50%',y:'66%',tx:'44%',ty:'66%',insight:'social'},
-{label:'03 / 我的一生',title:'同一个时代，<br>进入不同的人生。',text:'照片让我们看见一个劳动者；继续理解他的感受、目标与选择，还要走近他自己的生活记录。宏观历史，终于成为某个人的遭遇。',zoom:1.55,x:'69%',y:'52%',tx:'66%',ty:'47%',insight:'self'},
-{label:'04 / 工具',title:'我们创造工具。<br>工具也塑造我们。',text:'手与扳手相接，工具延伸身体。怎样的动力、生产组织与生活秩序，支撑着这次行动？人与技术的联系，贯穿自然、社会与自我。',zoom:1.7,x:'73%',y:'75%',tx:'68%',ty:'72%',insight:'tools'}
-];
-const times=[
-{label:'地球生命时间',title:'我们生活在<br>比自己古老的世界里。',text:'人的身体与需要，来自漫长的生命演化。空气、水、土壤和其他生命，构成人类活动的宏观基底。'},
-{label:'社会生命时间',title:'怎样谋生与共处，<br>会在历史中改变。',text:'生产方式、家庭、制度与文化，为生命提供机会，也带来限制。人们创造的生活世界，还会改变自然条件。'},
-{label:'个体生命时间',title:'宏大的变化，<br>成为某个人的遭遇。',text:'出生、成长、劳动、衰老，进入具体的一生。个人的经验与行动，受到宏观条件影响，又汇聚成社会变化。'}
-];
-const insights={
-body:{label:'生命先有身体',title:'一口饭，怎样进入历史？',text:['人需要空气、水与食物，身体有耐受的范围。王利华把这些生物条件放在生命史的起点：无论制度和观念怎样改变，生命活动始终依赖自然。','但食物从哪里来、由谁生产、怎样分配，已经进入社会历史。沿着一口饭追下去，身体的需要会带我们走向土地、劳动、技术与人与人的关系。'],page:13},
-social:{label:'生命进入共同生活',title:'一个人怎样获得生活的条件？',text:['家庭、社区、经济与政治制度，构成生命活动的关系网络。人通过这些关系谋生、学习、获得照料，也经历约束和冲突。社会文化条件进入日常生活，影响身体的需要怎样得到满足。','相同的需要，在不同的制度与文化中会得到不同回应。追问这些回应怎样形成，才能看见关系网络中的保障、机会与代价。'],page:14},
-self:{label:'生命成为具体的一生',title:'时代怎样进入个人的经验？',text:['人有自己的经历、情感、人生目标与自主选择。自然和社会文化条件影响这些经验，个人又会在这些条件中行动、创造。王利华希望把生命体验和意义追求留在历史解释之中。','从宏观变化走到一个人的处境，还需要生活记录、个人书写与具体行动。这个人怎样理解自己的遭遇，什么值得追求，什么使他改变选择？'],page:14},
-tools:{label:'人与技术',title:'一种工具，怎样重新安排生命的联系？',text:['工具让人的行动越过身体原有的限制，也改变人使用资源、开展劳动和组织生产的方式。王利华把“人与技术”纳入基本历史关系，将技术变迁与生命的存续方式联系起来。','追踪一种工具，需要知道谁制造、谁掌握、谁依赖它。它改变了谁的能力，依赖怎样的材料与能源，又形成怎样的生活秩序？','在2025年的南开大学讲座中，王利华也把 AI 的作用和人的主体性放在一起讨论。享受工具的能力，需要继续运用自己的知识与判断。'],page:18},
-relations:{label:'四重基本关系',title:'生命，在关系中展开。',text:['人与自然：获得并维持食物、水、空气与能源等生命条件。改变环境，也改变自己的生存条件。','人与人：家庭、生产与制度安排，把人们联系起来，也使生命保障和机会发生差异。','人与自我：感受、认同、目标与意义追求，是生命过程的内在维度。个人在自然和社会文化条件中理解、应对和创造。','人与技术：技术延伸能力，介入资源利用、社会组织与个人体验，贯穿前三重关系。'],page:18},
-sheng:{label:'本土思想资源',title:'生命相续，也在关系中创进。',text:['王利华从“生生”思想中提取整体性、连续性、创造性和价值性的资源：人生活在天地万物之中，生命相续的过程，也不断产生新的关系与可能。','把这些资源带入历史研究，需要同时检视传统中压迫和束缚生命的部分。作者明确触及等级观念、对女性的压抑等问题。继承一种思想，也包含对它的历史反思。'],page:7},
-marx:{label:'马克思的思想启示',title:'从活生生的个人与生活生产出发。',text:['主文本借助马克思，把现实的个人及其生命活动放到历史思考的起点。吃、喝、住、穿等需要，与满足需要的物质生活生产相联系；人与自然的交往，也在具体的社会关系中展开。','作者由此把异化、人的发展以及人与自然和人与人的双重和解，联系到生命关怀的价值方向。研究要追踪实际的生活条件，考察人怎样劳动、依赖和创造。'],page:9},
-history:{label:'多学科对话',title:'扩大时间视野，也保留具体的人。',text:['医疗社会史和日常生活史，把身体、健康与具体生活带进研究；环境史与行星史把人放回生态和地球系统；大史、深史又把观察伸向更漫长的生命与人类历程。','王利华吸收这些视野，也指出各自的困难：宏观叙事可能弱化个人体验，研究更深的过去面临文字材料的限制，强调自然条件又需要容纳社会复杂性和文化能动性。'],page:10},
-mouth:{label:'河口 / 1989—2020',title:'水流转向，泥沙也转向。',text:['1996年，人们改动了清水沟水道，使河水向西北方向流入海洋。泥沙沉积的位置随之改变，三角洲不同部位的增生和侵蚀也重新分布。','沿着河口的变化继续追问：工程怎样决定水流的去向？哪些地方获得新的土地，哪些地方失去泥沙补给？'],url:'https://science.nasa.gov/earth/earth-observatory/building-up-the-yellow-river-delta-148145/'},
-shore:{label:'海岸 / 水与泥沙的联系',title:'一条被放弃的水道，继续影响海岸。',text:['北部旧水道附近的海岸，随水和泥沙补给减少而退缩。一些较稳定的岸段则受到海堤保护。海岸的位置，记录着水流、泥沙、海洋和工程的共同作用。','同一次改变，怎样进入不同地方的生活？继续研究，需要把影像中的岸线变化，与当地生产、聚居和保护措施联系起来。'],url:'https://science.nasa.gov/earth/earth-observatory/building-up-the-yellow-river-delta-148145/'},
-ponds:{label:'池塘 / 被组织的海岸',title:'整齐的格子，是生产留下的形状。',text:['沿旧水道一带扩展的养殖池、盐田与工业设施，让海岸成为被组织的生产空间。池塘的形状、大小与颜色，提示不同的利用方式。','影像带我们提出问题：谁决定怎样利用水与土地，谁获得资源，谁承担改变之后的风险？答案需要继续走向具体的历史行动与材料。'],url:'https://science.nasa.gov/earth/earth-observatory/building-up-the-yellow-river-delta-148145/'}
-};
-const cases={meal:{label:'一顿饭',support:'食物怎样从土地进入餐桌？需要追踪作物、土壤与水，也要追踪劳动、运输和获得食物的机会。',defense:'怎样判断食物是否安全？保护健康的知识、检验和社会制度，怎样进入生产与消费？',cognition:'什么被认作可食、营养或有害？这些认识由谁提出，怎样传播，又怎样进入日常选择？',order:'围绕土地和水，人们怎样安排生产、聚居与分配？遇到短缺时，谁可以改变安排，谁承担代价？'},illness:{label:'一次疾病',support:'患病期间，食物、饮水、居住与照料怎样得到保障？生活条件如何影响疾病中的人？',defense:'谁提供治疗和护理，谁能获得它们？医疗与防疫安排怎样形成，又怎样改变生命的安全？',cognition:'人们怎样解释病因、识别风险？经验与医学知识如何相遇，什么认识被接受或拒绝？',order:'应对疾病的安排怎样改变家庭、劳动和公共生活？这些变化又怎样影响人的健康条件？'},message:{label:'一条推送',support:'让信息抵达屏幕，需要怎样的设备、能源与物质条件？这些条件由谁维持，又消耗什么？',defense:'持续连接怎样影响休息、身体与心理健康？人们如何认识这些影响，又建立哪些保护方式？',cognition:'环境信息怎样被筛选和呈现？什么被看见，什么被忽略，怎样影响人对风险和资源的认识？',order:'平台规则、技术与使用习惯怎样组织注意力？谁能决定信息怎样抵达，使用者又怎样调整自己的生活？'}};
-const paragraphs=(el,parts)=>el.replaceChildren(...parts.map(text=>{const p=document.createElement('p');p.textContent=text;return p}));
-const openers=new WeakMap();function show(dialog,opener){$$('dialog[open]').forEach(d=>d.close());openers.set(dialog,opener);dialog.showModal();document.body.classList.add('modal-open')}
-$$('dialog').forEach(d=>{d.addEventListener('close',()=>{if(!$('dialog[open]'))document.body.classList.remove('modal-open');const opener=openers.get(d);if(opener&&opener.isConnected&&(!opener.closest('dialog')||opener.closest('dialog').open))opener.focus();else $('#menu-open').focus()});d.addEventListener('click',e=>{if(e.target!==d)return;const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()})});
-$$('[data-close]').forEach(b=>b.addEventListener('click',()=>$('#'+b.dataset.close).close()));$('#menu-open').addEventListener('click',e=>show($('#contents-dialog'),e.currentTarget));$$('#contents-dialog nav a').forEach(a=>a.addEventListener('click',()=>$('#contents-dialog').close()));
-function insight(key,opener){const d=insights[key];$('#insight-label').textContent=d.label;$('#insight-title').textContent=d.title;paragraphs($('#insight-text'),d.text);const link=$('#insight-link');link.style.display=d.url?'':'none';link.href=d.url||'#';show($('#insight-dialog'),opener)}
-$$('[data-insight]').forEach(b=>b.addEventListener('click',()=>insight(b.dataset.insight,b)));$$('[data-delta]').forEach(b=>b.addEventListener('click',()=>insight(b.dataset.delta,b)));
-const descriptions={12:'作者提出“生命实在论”，介绍这份开放的研究构想。',16:'地球生命、社会生命、个体生命：相互嵌套、制约与反馈的时间。',19:'作者运用智能体与信息工具的经验，以及对沉思自由和能力的思考。'};
-function readingPage(page){$$('[data-page]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.page===String(page))));$('#reading-page').src='assets/source-page-'+page+'.png';$('#reading-page').alt='PDF 第'+page+'页原文';$('#reading-description').textContent=descriptions[page]}
-$$('[data-reading]').forEach(b=>b.addEventListener('click',()=>{readingPage(b.dataset.reading);show($('#reading-dialog'),b)}));$$('[data-page]').forEach(b=>b.addEventListener('click',()=>readingPage(b.dataset.page)));
-function map(opener){const f=$('#map-frame');if(!f.getAttribute('src'))f.src=f.dataset.src;show($('#map-dialog'),opener)}$('#map-open').addEventListener('click',e=>map(e.currentTarget));$('#menu-map').addEventListener('click',e=>map(e.currentTarget));
-const shortPerson=['人需要食物与休息，身体也有耐受的范围。','谁组织劳动，谁获得保障，谁承担风险？','同一个时代，怎样成为某个人的遭遇？','手与扳手相接，工具延伸身体。'];let personIndex=-1,timeIndex=-1,ideaIndex=-1,compactPerson=false;function setPerson(i){if(i===personIndex)return;personIndex=i;const d=persons[i];$('#person-label').textContent=d.label;$('#person-title').innerHTML=d.title;$('#person-text').textContent=compactPerson?shortPerson[i]:d.text;const stage=$('.person-stage');for(const [k,v] of Object.entries({'--zoom':d.zoom,'--focus-x':d.x,'--focus-y':d.y,'--target-x':d.tx,'--target-y':d.ty}))stage.style.setProperty(k,v);$$('[data-person]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.person)===i)))}$('#person-more').addEventListener('click',e=>insight(persons[personIndex].insight,e.currentTarget));
-function setTime(i){if(i===timeIndex)return;timeIndex=i;const d=times[i];$('#time-label').textContent=d.label;$('#time-title').innerHTML=d.title;$('#time-text').textContent=d.text;$$('[data-time]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.time)===i)));$$('.time-orbit').forEach((el,n)=>el.classList.toggle('active',n===i))}
-function setIdea(i){if(i===ideaIndex)return;ideaIndex=i;$('.gallery-position').textContent=String(i+1).padStart(2,'0')+' / 03';$$('[data-idea]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.idea)===i)))}
-const comparisonHandle=$('.compare-line');comparisonHandle.removeAttribute('aria-hidden');comparisonHandle.setAttribute('role','slider');comparisonHandle.setAttribute('aria-label','拖动图像中的分界线');comparisonHandle.setAttribute('aria-valuemin','0');comparisonHandle.setAttribute('aria-valuemax','100');comparisonHandle.setAttribute('aria-orientation','horizontal');comparisonHandle.tabIndex=0;
-function compare(value){value=Math.round(Math.min(100,Math.max(0,Number(value))));$('#compare').style.setProperty('--split',value+'%');$('#compare-range').value=value;comparisonHandle.setAttribute('aria-valuenow',value);const description=value===0?'显示2020年影像':value===100?'显示1989年影像':'左侧1989年，右侧2020年，分界位于'+value+'%';comparisonHandle.setAttribute('aria-valuetext',description);$$('[data-compare]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.compare)===value)));$('#compare-range').setAttribute('aria-valuetext',description)}
-let dragging=false;function dragCompare(e){const r=$('#compare').getBoundingClientRect();compare((e.clientX-r.left)/r.width*100)}comparisonHandle.addEventListener('pointerdown',e=>{dragging=true;comparisonHandle.setPointerCapture(e.pointerId);dragCompare(e)});comparisonHandle.addEventListener('pointermove',e=>{if(dragging)dragCompare(e)});comparisonHandle.addEventListener('pointerup',()=>dragging=false);comparisonHandle.addEventListener('pointercancel',()=>dragging=false);comparisonHandle.addEventListener('keydown',e=>{let v=Number($('#compare-range').value);if(e.key==='ArrowLeft')v-=5;else if(e.key==='ArrowRight')v+=5;else if(e.key==='Home')v=0;else if(e.key==='End')v=100;else return;e.preventDefault();compare(v)});
-$('#compare-range').addEventListener('input',e=>compare(e.target.value));$$('[data-compare]').forEach(b=>b.addEventListener('click',()=>compare(b.dataset.compare)));compare(50);
-$$('[data-case]').forEach(b=>b.addEventListener('click',()=>{const d=cases[b.dataset.case];$$('[data-case]').forEach(el=>el.setAttribute('aria-pressed',String(el===b)));$('#case-label').textContent=d.label;['support','defense','cognition','order'].forEach(k=>$('#case-'+k).textContent=d[k])}));
-$('#quiet-button').addEventListener('click',e=>{const on=$('#attention').classList.toggle('quiet');e.currentTarget.setAttribute('aria-pressed',String(on));e.currentTarget.firstChild.textContent=on?'继续连接 ':'留出一刻 '});
-const reduce=matchMedia('(prefers-reduced-motion: reduce)');function motion(){document.documentElement.classList.toggle('motion',!reduce.matches)}motion();reduce.addEventListener('change',motion);const observer=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}}),{threshold:.05});$$('.reveal').forEach(el=>observer.observe(el));
-const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));function sceneProgress(el){const r=el.getBoundingClientRect();return clamp(-r.top/Math.max(1,el.offsetHeight-innerHeight))}const scenes={entrance:$('#entrance'),person:$('#person'),time:$('#time'),ideas:$('#ideas')};let pending=false,staticScenes=false;
-function scrollScene(id,index,count){if(staticScenes){if(id==='ideas'){const track=$('.idea-track'),card=$('.idea-card');track.scrollTo({left:index*(card.offsetWidth+(parseFloat(getComputedStyle(track).gap)||0)),behavior:reduce.matches?'instant':'smooth'});setIdea(index)}return}const el=scenes[id],range=Math.max(0,el.offsetHeight-innerHeight);const top=scrollY+el.getBoundingClientRect().top+range*(index/(count-1))*.98;window.scrollTo({top,behavior:reduce.matches?'instant':'smooth'})}
-$$('[data-person]').forEach(b=>b.addEventListener('click',()=>{setPerson(Number(b.dataset.person));scrollScene('person',Number(b.dataset.person),4)}));$$('[data-time]').forEach(b=>b.addEventListener('click',()=>{setTime(Number(b.dataset.time));scrollScene('time',Number(b.dataset.time),3)}));$$('[data-idea]').forEach(b=>b.addEventListener('click',()=>scrollScene('ideas',Number(b.dataset.idea),3)));
-function update(){pending=false;staticScenes=parseFloat(getComputedStyle(document.documentElement).fontSize)>22||innerHeight<500||(innerWidth<=360&&innerHeight<700);document.documentElement.classList.toggle('static-scenes',staticScenes);const compact=innerHeight<700&&!staticScenes;if(compact!==compactPerson){compactPerson=compact;personIndex=-1}const h=innerHeight,y=scrollY;$('#progress').style.transform='scaleX('+clamp(y/Math.max(1,document.documentElement.scrollHeight-h))+')';let active='entrance';$$('main>section[id]').forEach(el=>{if(el.getBoundingClientRect().top<h*.45&&$$('[data-room]').some(a=>a.dataset.room===el.id))active=el.id});$$('[data-room]').forEach(a=>{const on=a.dataset.room===active;a.classList.toggle('active',on);if(on)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')});
-const ep=sceneProgress(scenes.entrance),es=$('.entrance-stage');es.style.setProperty('--hero-y',(-ep*80)+'px');es.style.setProperty('--hero-alpha',1-clamp((ep-.05)/.42));es.style.setProperty('--hero-second',clamp((ep-.3)/.35));es.style.setProperty('--hero-second-y',((1-clamp((ep-.3)/.35))*50)+'px');es.style.setProperty('--earth-scale',reduce.matches?1:1+ep*.8);es.style.setProperty('--earth-y',reduce.matches?'0':(-ep*4)+'%');
-if(!staticScenes){setPerson(Math.min(3,Math.floor(sceneProgress(scenes.person)*4)));setTime(Math.min(2,Math.floor(sceneProgress(scenes.time)*3)));const ip=sceneProgress(scenes.ideas),cards=$$('.idea-card'),gap=parseFloat(getComputedStyle($('.idea-track')).gap)||0,width=cards[0].offsetWidth;$('.idea-track').style.setProperty('--track-x',(-ip*(width+gap)*2)+'px');setIdea(Math.round(ip*2))}else{$('.idea-track').style.setProperty('--track-x','0px');if(personIndex<0)setPerson(0);if(timeIndex<0)setTime(0);if(ideaIndex<0)setIdea(0)}
-}
-function schedule(){if(!pending){pending=true;requestAnimationFrame(update)}}window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);new ResizeObserver(schedule).observe(document.documentElement);update();
+/* 正文始终在主页面中；交互只负责定位、影像比较与暂停动态。 */
+(() => {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const menu = $('#chapter-menu');
+  const summary = menu.querySelector('summary');
+  const chapters = $$('main > section[data-number]');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const picture = $('.person-photo');
+  const focus = [
+    {zoom:1,x:'50%',y:'50%'},
+    {zoom:1.12,x:'50%',y:'66%'},
+    {zoom:1.36,x:'69%',y:'52%'},
+    {zoom:1.5,x:'73%',y:'75%'}
+  ];
+  let lastPerson = -1;
+  function closeMenu(returnFocus = false) {
+    menu.open = false;
+    if (returnFocus) summary.focus();
+  }
+  menu.addEventListener('toggle', () => summary.setAttribute('aria-expanded',String(menu.open)));
+  document.addEventListener('click', e => {
+    if (menu.open && !menu.contains(e.target)) closeMenu();
+    const link = e.target.closest('a[href^="#"]');
+    if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const id = link.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if (!target) return;
+    closeMenu();
+    // 保留原生锚点与浏览器历史，焦点随阅读位置移动。
+    requestAnimationFrame(() => {
+      if (target.hasAttribute('tabindex')) target.focus({preventScroll:true});
+    });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && menu.open) { e.preventDefault(); closeMenu(true); }
+  });
+
+  const handle = $('#compare-handle');
+  const range = $('#compare-range');
+  const image = $('#compare');
+  function compare(value) {
+    value = Math.round(Math.max(0,Math.min(100,Number(value))));
+    image.style.setProperty('--split',value+'%');
+    range.value = value;
+    const text = value === 0 ? '显示2020年影像' : value === 100 ? '显示1989年影像' : '左侧1989年，右侧2020年，分界位于'+value+'%';
+    handle.setAttribute('aria-valuenow',String(value));
+    handle.setAttribute('aria-valuetext',text);
+    range.setAttribute('aria-valuetext',text);
+    $$('[data-compare]').forEach(b => b.setAttribute('aria-pressed',String(Number(b.dataset.compare) === value)));
+  }
+  range.addEventListener('input',e => compare(e.target.value));
+  $$('[data-compare]').forEach(b => b.addEventListener('click',() => compare(b.dataset.compare)));
+  let pointer = null;
+  handle.addEventListener('pointerdown',e => {
+    if (e.button !== 0) return;
+    pointer = {id:e.pointerId,x:e.clientX,y:e.clientY};
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove',e => {
+    if (!pointer || pointer.id !== e.pointerId) return;
+    // 允许手机继续纵向滑动；横向动作才改变分界。
+    if (e.pointerType === 'touch' && Math.abs(e.clientX-pointer.x) <= Math.abs(e.clientY-pointer.y)) return;
+    const rect = image.getBoundingClientRect();
+    compare((e.clientX-rect.left)/rect.width*100);
+  });
+  ['pointerup','pointercancel','lostpointercapture'].forEach(type => handle.addEventListener(type,() => { pointer = null; }));
+  handle.addEventListener('keydown',e => {
+    const current = Number(range.value);
+    const values = {ArrowLeft:current-5,ArrowRight:current+5,Home:0,End:100,PageDown:current-10,PageUp:current+10};
+    if (!(e.key in values)) return;
+    e.preventDefault();
+    compare(values[e.key]);
+  });
+  compare(50);
+
+  $('#quiet-button').addEventListener('click',e => {
+    const quiet = $('#attention').classList.toggle('quiet');
+    e.currentTarget.setAttribute('aria-pressed',String(quiet));
+    e.currentTarget.innerHTML = quiet ? '继续连接<span aria-hidden="true">▷</span>' : '留出一刻<span aria-hidden="true">Ⅱ</span>';
+    $('#quiet-response').innerHTML = quiet ? '此刻，注意力回到这里。' : '什么可以交给工具？<br>什么仍需自己判断？';
+  });
+
+  let queued = false;
+  function update() {
+    queued = false;
+    const reference = Math.min(innerHeight*.4,Math.max(140,innerHeight-100));
+    let active = chapters[0];
+    for (const chapter of chapters) if (chapter.getBoundingClientRect().top <= reference) active = chapter;
+    $('#current-room').textContent = active.dataset.number+' / '+active.dataset.label;
+    $$('[data-room],#exhibition-nav a').forEach(a => {
+      const on = a.getAttribute('href') === '#'+active.id;
+      if (on) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current');
+    });
+    const fraction = Math.max(0,Math.min(1,scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight)));
+    $('#progress').style.transform = 'scaleX('+fraction+')';
+    document.body.classList.toggle('has-scrolled',scrollY > innerHeight*.65);
+    $$('.section-links').forEach(nav => {
+      const links = Array.from(nav.querySelectorAll('a[href^="#"]'));
+      let selected = links[0];
+      for (const a of links) {
+        const target = document.getElementById(a.getAttribute('href').slice(1));
+        if (target && target.getBoundingClientRect().top <= reference) selected = a;
+      }
+      links.forEach(a => {
+        if (a === selected) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current');
+      });
+    });
+    const selected = $('.person-visual a[aria-current]');
+    const index = selected ? Number(selected.dataset.person) : 0;
+    if (lastPerson !== index) {
+      lastPerson = index;
+      const d = focus[index];
+      picture.style.setProperty('--zoom',reduce.matches ? 1 : d.zoom);
+      picture.style.setProperty('--focus-x',d.x);
+      picture.style.setProperty('--focus-y',d.y);
+    }
+  }
+  function schedule() {
+    if (!queued) { queued = true; requestAnimationFrame(update); }
+  }
+  window.addEventListener('scroll',schedule,{passive:true});
+  window.addEventListener('resize',schedule);
+  window.addEventListener('hashchange',schedule);
+  window.addEventListener('pageshow',schedule);
+  reduce.addEventListener('change',() => { lastPerson = -1; schedule(); });
+  new ResizeObserver(schedule).observe(document.body);
+  update();
 })();
