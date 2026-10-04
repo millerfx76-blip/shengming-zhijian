@@ -1,4 +1,4 @@
-/* 正文始终在主页面中；交互只负责定位、影像比较与暂停动态。 */
+/* 正文始终在主页面中；照片在阅读中停留，并随四种联系逐步靠近。 */
 (() => {
   'use strict';
   const $ = s => document.querySelector(s);
@@ -8,11 +8,12 @@
   const chapters = $$('main > section[data-number]');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   const picture = $('.person-photo');
+  const personLayout = $('.person-layout');
   const focus = [
     {zoom:1,x:'50%',y:'50%'},
     {zoom:1.12,x:'50%',y:'66%'},
-    {zoom:1.36,x:'69%',y:'52%'},
-    {zoom:1.5,x:'73%',y:'75%'}
+    {zoom:1.55,x:'69%',y:'52%'},
+    {zoom:1.7,x:'73%',y:'75%'}
   ];
   let lastPerson = -1;
   function closeMenu(returnFocus = false) {
@@ -86,6 +87,13 @@
   function update() {
     queued = false;
     const reference = Math.min(innerHeight*.4,Math.max(140,innerHeight-100));
+    const narrowPerson = getComputedStyle($('.person-visual')).display === 'contents';
+    const pictureRect = picture.getBoundingClientRect();
+    const stickySpace = narrowPerson ? pictureRect.height : 0;
+    personLayout.style.setProperty('--person-sticky-space',stickySpace+'px');
+    const personReference = narrowPerson && pictureRect.top >= 0 && pictureRect.top < innerHeight
+      ? Math.min(innerHeight-40,Math.max(reference,pictureRect.bottom+Math.min(100,Math.max(80,(innerHeight-pictureRect.bottom)*.2))))
+      : reference;
     let active = chapters[0];
     for (const chapter of chapters) if (chapter.getBoundingClientRect().top <= reference) active = chapter;
     $('#current-room').textContent = active.dataset.number+' / '+active.dataset.label;
@@ -101,7 +109,8 @@
       let selected = links[0];
       for (const a of links) {
         const target = document.getElementById(a.getAttribute('href').slice(1));
-        if (target && target.getBoundingClientRect().top <= reference) selected = a;
+        const readingLine = nav.closest('.person-visual') ? personReference : reference;
+        if (target && target.getBoundingClientRect().top <= readingLine) selected = a;
       }
       links.forEach(a => {
         if (a === selected) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current');
