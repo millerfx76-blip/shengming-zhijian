@@ -7,6 +7,108 @@
   const summary = menu.querySelector('summary');
   const chapters = $$('main > section[data-number]');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const hero = $('#entrance');
+  const field = $('#life-field');
+  const ctx = field.getContext('2d');
+  const motionButton = $('#motion-button');
+  let motionPaused = reduce.matches;
+  let heroVisible = true, fieldFrame = 0, fieldWidth = 0, fieldHeight = 0, fieldTime = 0;
+  let pointerX = 0, pointerY = 0, smoothX = 0, smoothY = 0, lastDraw = 0;
+  const lenses = {
+    nature:{index:0,note:'每一次呼吸，都与更古老的世界相连。'},
+    social:{index:1,note:'吃、喝、劳动、照料，共同生活在这些行动中形成。'},
+    self:{index:2,note:'同一段历史，落在不同的一生里。'}
+  };
+  function sizeField() {
+    const rect = hero.getBoundingClientRect();
+    fieldWidth = rect.width; fieldHeight = rect.height;
+    const ratio = Math.min(1.5,devicePixelRatio || 1);
+    const width = Math.round(fieldWidth*ratio), height = Math.round(fieldHeight*ratio);
+    if (field.width !== width || field.height !== height) { field.width = width; field.height = height; }
+    if (ctx) ctx.setTransform(ratio,0,0,ratio,0,0);
+  }
+  // 三条线是策展的关系隐喻，不是轨道或观测数据。
+  function drawField() {
+    if (!ctx) return;
+    ctx.clearRect(0,0,fieldWidth,fieldHeight);
+    const mobile = fieldWidth <= 600;
+    const colours = ['#d8ef85','#92b6cf','#dba787'];
+    const selected = lenses[hero.dataset.lens].index;
+    const cx = fieldWidth*(mobile ? (selected ? .66 : .52) : (selected ? .79 : .61)) + smoothX;
+    const cy = fieldHeight*(selected ? .48 : (mobile ? .27 : .35)) + smoothY;
+    const radius = Math.min(fieldWidth*(mobile ? .44 : .22),fieldHeight*.35)*(selected===2 ? .72 : 1);
+    for (let ring=0;ring<3;ring++) {
+      const angle = [-.25,.65,1.7][ring];
+      const cos = Math.cos(angle), sin = Math.sin(angle);
+      ctx.beginPath();
+      for (let n=0;n<=180;n++) {
+        const t = n/180*Math.PI*2;
+        const x = Math.cos(t)*radius;
+        const y = Math.sin(t)*radius*.47;
+        const px = cx+x*cos-y*sin, py=cy+x*sin+y*cos;
+        if (!n) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.strokeStyle = colours[ring];
+      ctx.globalAlpha = ring === selected ? .44 : .14;
+      ctx.lineWidth = ring === selected ? 1 : .6;
+      ctx.stroke();
+      for (let dot=0;dot<5;dot++) {
+        const t = fieldTime*(ring===1 ? -.09 : .07) + dot/5*Math.PI*2 + ring;
+        const x=Math.cos(t)*radius,y=Math.sin(t)*radius*.47;
+        ctx.beginPath();
+        ctx.arc(cx+x*cos-y*sin,cy+x*sin+y*cos,ring===selected && dot===0 ? 3 : 1.1,0,Math.PI*2);
+        ctx.fillStyle=colours[ring];ctx.globalAlpha=ring===selected ? .8 : .25;ctx.fill();
+      }
+    }
+    ctx.globalAlpha=1;
+  }
+  function fieldTick(timestamp) {
+    fieldFrame = 0;
+    if (document.hidden || !heroVisible || motionPaused) return;
+    if (timestamp-lastDraw >= 32) {
+      const delta = Math.min(.05,(timestamp-lastDraw)/1000);
+      lastDraw=timestamp; fieldTime+=delta;
+      smoothX+=(pointerX-smoothX)*.08; smoothY+=(pointerY-smoothY)*.08;
+      drawField();
+    }
+    fieldFrame=requestAnimationFrame(fieldTick);
+  }
+  function syncField() {
+    if (fieldFrame) cancelAnimationFrame(fieldFrame);
+    fieldFrame=0; drawField();
+    if (ctx && heroVisible && !document.hidden && !motionPaused) { lastDraw=performance.now();fieldFrame=requestAnimationFrame(fieldTick); }
+  }
+  function syncMotion() {
+    document.body.classList.toggle('motion-paused',motionPaused);
+    motionButton.setAttribute('aria-pressed',String(motionPaused));
+    const label = motionPaused ? '继续展览动态' : '暂停展览动态';
+    motionButton.setAttribute('aria-label',label); motionButton.title=label;
+    motionButton.querySelector('path').setAttribute('d',motionPaused ? 'M9 5L19 12L9 19Z' : 'M9 5V19M15 5V19');
+    syncField(); schedule();
+  }
+  motionButton.addEventListener('click',() => { motionPaused=!motionPaused;syncMotion(); });
+  $$('[data-life-lens]').forEach(button => button.addEventListener('click',() => {
+    hero.dataset.lens=button.dataset.lifeLens;
+    $('#hero-lens-note').textContent=lenses[button.dataset.lifeLens].note;
+    const human=$('#hero-human'),nature=button.dataset.lifeLens==='nature';
+    if (!nature && !human.hasAttribute('src')) human.src=human.dataset.src;
+    human.setAttribute('aria-hidden',String(nature));
+    $('.earthrise').setAttribute('aria-hidden',String(!nature));
+    $('#hero-credit').textContent=nature ? 'Earthrise · William Anders / NASA · 1968' : 'Lewis Hine · 1920 · NARA';
+    $$('[data-life-lens]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+    drawField();
+  }));
+  if (matchMedia('(pointer:fine)').matches) {
+    hero.addEventListener('pointermove',e => {
+      const rect=hero.getBoundingClientRect();
+      pointerX=(e.clientX/rect.width-.5)*22; pointerY=((e.clientY-rect.top)/rect.height-.5)*18;
+    },{passive:true});
+    hero.addEventListener('pointerleave',()=>{pointerX=0;pointerY=0;});
+  }
+  new IntersectionObserver(entries=>{heroVisible=entries[0].isIntersecting;syncField();},{threshold:0}).observe(hero);
+  document.addEventListener('visibilitychange',syncField);
+  window.addEventListener('resize',()=>{sizeField();syncField();});
+  sizeField();
   const picture = $('.person-photo');
   const personLayout = $('.person-layout');
   const focus = [
@@ -74,15 +176,25 @@
     $$('[data-atlas-system]').forEach(b => b.setAttribute('aria-pressed',String(b.dataset.atlasSystem === atlasSystem)));
     $$('[data-atlas-path]').forEach(p => p.classList.toggle('active',p.dataset.atlasPath === atlasSystem));
     $$('[data-system-story]').forEach(p => p.classList.toggle('active',p.dataset.systemStory === atlasSystem));
+    const trailStart = {support:['body','身体的需要'],defense:['social','生活的保障'],knowledge:['idea-ecology','怎样认识环境'],order:['social','共同的生活']}[atlasSystem];
+    const trailMiddle = {
+      meal:{support:['delta','土地的改变'],defense:['body','身体的耐受'],knowledge:['idea-marx','生活与实践'],order:['river-ponds','生产的安排']},
+      illness:{support:['case-meal','一顿饭的支撑'],defense:['body','身体的耐受'],knowledge:['idea-history','走近具体的人'],order:['self','个人的经历']},
+      message:{support:['tools','工具与材料'],defense:['attention','沉思的空间'],knowledge:['attention','看见与判断'],order:['tools','人与技术']}
+    }[atlasCase][atlasSystem];
+    const last = {meal:['case-meal','回到这顿饭'],illness:['case-illness','回到这次疾病'],message:['case-message','回到这条推送']}[atlasCase];
+    $('#atlas-trail').innerHTML=[trailStart,trailMiddle,last].map(([id,label],i)=>'<a href="#'+id+'"><span>0'+(i+1)+'</span>'+label+'<i aria-hidden="true">↗</i></a>').join('');
   }
   $$('[data-atlas-case]').forEach(b => b.addEventListener('click',() => { atlasCase = b.dataset.atlasCase; updateAtlas(); }));
   $$('[data-atlas-system]').forEach(b => b.addEventListener('click',() => { atlasSystem = b.dataset.atlasSystem; updateAtlas(); }));
   updateAtlas();
   function closeMenu(returnFocus = false) {
     menu.open = false;
+    document.body.classList.remove('menu-open');
+    $('main').inert = false;
     if (returnFocus) summary.focus();
   }
-  menu.addEventListener('toggle', () => summary.setAttribute('aria-expanded',String(menu.open)));
+  menu.addEventListener('toggle', () => { summary.setAttribute('aria-expanded',String(menu.open));document.body.classList.toggle('menu-open',menu.open);$('main').inert=menu.open; });
   document.addEventListener('click', e => {
     if (menu.open && !menu.contains(e.target)) closeMenu();
     const link = e.target.closest('a[href^="#"]');
@@ -187,6 +299,7 @@
     const fraction = Math.max(0,Math.min(1,scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight)));
     $('#progress').style.transform = 'scaleX('+fraction+')';
     document.body.classList.toggle('has-scrolled',scrollY > innerHeight*.65);
+    document.body.classList.toggle('paper-scene',$$('.light,#idea-sheng,#idea-marx,.conversation').some(section=>{const rect=section.getBoundingClientRect();return rect.top<=reference && rect.bottom>reference;}));
     $$('.section-links').forEach(nav => {
       const links = Array.from(nav.querySelectorAll('a[href^="#"]'));
       let selected = links[0];
@@ -214,11 +327,19 @@
     const index = selected ? Number(selected.dataset.person) : 0;
     if (lastPerson !== index) {
       lastPerson = index;
+      $('#person-lens-label').textContent='观察 / '+['身体','共同生活','我的一生','工具'][index];
       const d = focus[index];
       picture.style.setProperty('--zoom',reduce.matches ? 1 : d.zoom);
       picture.style.setProperty('--focus-x',d.x);
       picture.style.setProperty('--focus-y',d.y);
     }
+    $$('.idea-art').forEach(art=>{
+      const bounds=art.getBoundingClientRect();
+      if (bounds.bottom<0 || bounds.top>innerHeight) return;
+      const progress=Math.max(0,Math.min(1,(innerHeight-bounds.top)/(innerHeight+bounds.height)));
+      art.style.setProperty('--art-drift',(motionPaused || reduce.matches ? 0 : (progress-.5)*24)+'px');
+      art.style.setProperty('--art-controls-inset',Math.min(Math.max(16,bounds.height-64),Math.max(24,bounds.bottom-innerHeight+24))+'px');
+    });
   }
   function schedule() {
     if (!queued) { queued = true; requestAnimationFrame(update); }
@@ -227,7 +348,9 @@
   window.addEventListener('resize',schedule);
   window.addEventListener('hashchange',schedule);
   window.addEventListener('pageshow',schedule);
-  reduce.addEventListener('change',() => { lastPerson = -1; schedule(); });
+  reduce.addEventListener('change',() => { lastPerson = -1;motionPaused=reduce.matches;syncMotion();schedule(); });
   new ResizeObserver(schedule).observe(document.body);
+  new ResizeObserver(()=>{sizeField();syncField();}).observe(hero);
   update();
+  syncMotion();
 })();
