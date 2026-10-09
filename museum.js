@@ -80,6 +80,7 @@
   }
   function syncMotion() {
     document.body.classList.toggle('motion-paused',motionPaused);
+    document.documentElement.classList.toggle('motion-paused',motionPaused);
     motionButton.setAttribute('aria-pressed',String(motionPaused));
     const label = motionPaused ? '继续展览动态' : '暂停展览动态';
     motionButton.setAttribute('aria-label',label); motionButton.title=label;
@@ -188,6 +189,36 @@
   $$('[data-atlas-case]').forEach(b => b.addEventListener('click',() => { atlasCase = b.dataset.atlasCase; updateAtlas(); }));
   $$('[data-atlas-system]').forEach(b => b.addEventListener('click',() => { atlasSystem = b.dataset.atlasSystem; updateAtlas(); }));
   updateAtlas();
+  // 新论文的三维关系用于观察同一场景；连线不表达数量或因果强度。
+  const flowCases = {
+    river:{image:'assets/delta-2020-960.jpg',alt:'2020年黄河三角洲卫星影像，用于观察水、泥沙与土地的联系',credit:'黄河三角洲 · 2020 · NASA / USGS',note:'水与泥沙的移动、工程的作用、观察与决策，发生在同一片土地上。',target:'delta',returnLabel:'回到河口，继续观察',readings:[['水、泥沙与土地','沿着水与泥沙的移动，追问土地怎样形成和改变，哪些材料进入新的生产与生活过程。'],['水流与工程','水流搬运泥沙，工程改变它的路径。改造和维护需要哪些动力，又改变了哪些自然过程？'],['观察与决策','勘察、工程知识和卫星观察，使变化被记录与判断。哪些知识进入行动，谁据此作出选择？']]},
+    steam:{image:'assets/hine-mechanic.jpg',alt:'1920年的蒸汽泵机械工，用于进入机器与劳动的观察',credit:'Lewis Hine · 1920 · NARA',note:'以机器与劳动为入口，沿着材料、动力和生产知识，观察工业生活的联系。',target:'tools',returnLabel:'回到劳动者与工具',readings:[['材料、设备与产品','机器和产品依赖材料的取得与加工。沿着生产、消费和废弃，追问材料怎样进入并离开生活。'],['煤炭与蒸汽动力','论文以化石能源推动工业变革展开讨论。蒸汽动力怎样扩大生产能力，又改变资源利用的速度与范围？'],['科技与生产知识','设备制造、操作与维护依赖知识。哪些技术被采用，知识怎样进入生产，又怎样受到组织方式的影响？']]},
+    digital:{image:null,alt:'',credit:'生活观察 / 数字生活',note:'信息抵达屏幕，也依赖器件、能源和人们组织信息的方式。',target:'case-message',returnLabel:'回到一条推送，继续追问',readings:[['器件与废弃物','数字设备依赖金属与新材料。沿着制造、使用和淘汰，追问器件的物质来路与电子废弃物的去向。'],['电力与基础设施','终端和数字基础设施需要能源支撑。信息传递得越快、越广，维持这些活动需要怎样的能量条件？'],['数据、知识与规则','数据被收集、筛选和传递，算法参与其中。哪些信息抵达使用者，谁制定规则，又改变了谁的判断与生活？']]}
+  };
+  const flowKeys = ['material','energy','information'];
+  const flowBoard = $('#flow-workbench');
+  let flowCase = 'river', flowFocus = 'all';
+  function updateFlow() {
+    const d = flowCases[flowCase], photo = $('#flow-scene-image');
+    flowBoard.dataset.flowCase=flowCase; flowBoard.dataset.flowFocus=flowFocus;
+    photo.hidden=!d.image; $('#flow-digital').hidden=Boolean(d.image);
+    if (d.image) { photo.src=d.image; photo.alt=d.alt; }
+    $('#flow-scene-credit').textContent=d.credit;
+    flowKeys.forEach((key,i)=>{
+      $('#flow-'+key+'-title').textContent=d.readings[i][0];
+      $('#flow-'+key+'-copy').textContent=d.readings[i][1];
+    });
+    $('#flow-status').textContent=flowFocus==='all' ? d.note : '从'+{material:'物质',energy:'能量',information:'信息'}[flowFocus]+'这一股出发：'+d.readings[flowKeys.indexOf(flowFocus)][1];
+    $('#flow-return').setAttribute('href','#'+d.target);
+    $('#flow-return').replaceChildren(document.createTextNode(d.returnLabel));
+    const arrow=document.createElement('span');arrow.textContent='↗';arrow.setAttribute('aria-hidden','true');$('#flow-return').append(arrow);
+    $$('[data-flow-case]').filter(b=>b.tagName==='BUTTON').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowCase===flowCase)));
+    $$('[data-flow-focus]').filter(b=>b.tagName==='BUTTON').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===flowFocus)));
+  }
+  $$('.flow-case-controls button').forEach(b=>b.addEventListener('click',()=>{flowCase=b.dataset.flowCase;updateFlow();}));
+  $$('.flow-focus-controls button').forEach(b=>b.addEventListener('click',()=>{flowFocus=b.dataset.flowFocus;updateFlow();}));
+  updateFlow();
+
   function closeMenu(returnFocus = false) {
     menu.open = false;
     document.body.classList.remove('menu-open');
@@ -260,6 +291,12 @@
   let queued = false;
   function update() {
     queued = false;
+    flowBoard.style.setProperty('--flow-toolbar-height',$('.flow-toolbar').getBoundingClientRect().height+'px');
+    const flowBraidHeight=$('.braid-station').getBoundingClientRect().height;
+    flowBoard.style.setProperty('--flow-braid-height',flowBraidHeight+'px');
+    const compactFlow=getComputedStyle($('.flow-observation')).display==='contents';
+    const lastFlowReading=$('.flow-readings').lastElementChild.getBoundingClientRect().height;
+    flowBoard.style.setProperty('--flow-tail-space',(compactFlow ? Math.max(0,flowBraidHeight-lastFlowReading+16) : 0)+'px');
     const reference = Math.min(innerHeight*.4,Math.max(140,innerHeight-100));
     const narrowPerson = getComputedStyle($('.person-visual')).display === 'contents';
     const pictureRect = picture.getBoundingClientRect();
